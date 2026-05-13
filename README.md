@@ -1,4 +1,4 @@
-# snowflake-churn-warehouse
+
 # Snowflake Churn Warehouse
 
 Customer Churn Analytics & ML Scoring Platform  
