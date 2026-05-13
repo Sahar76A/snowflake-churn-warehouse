@@ -1,284 +1,169 @@
 # snowflake-churn-warehouse
-ustomer Churn Analytics & ML Scoring Platform
+# Snowflake Churn Warehouse
+
+Customer Churn Analytics & ML Scoring Platform  
 Snowflake · Python · Power BI · AWS
 
+---
+
+## Overview
+
 An end-to-end customer churn analytics platform that mirrors real-world data science and analytics engineering workflows.
-The system ingests raw data, performs warehouse-native transformations, trains and scores an ML model, and delivers executive and operational dashboards in Power BI.
 
-Business Problem
-Customer churn directly impacts revenue.
-This project enables stakeholders to:
+The system ingests raw customer data, performs warehouse-native transformations in Snowflake, trains and scores a machine learning model, and delivers executive and operational dashboards in Power BI.
 
-Understand who is churning and why
-Quantify churn drivers (contract, tenure, pricing)
-Identify high-risk customers using ML probability scores
-Act using BI dashboards backed by warehouse-native logic
-Architecture Overview
-End-to-End Data Flow
+---
 
-AWS Context (Production-Realistic)
-Snowflake account is deployed on AWS
+## Business Problem
 
-All warehouse compute and storage operate on AWS infrastructure
+Customer churn directly impacts revenue. This project enables stakeholders to:
 
-Pipeline design mirrors common AWS architectures:
+- Understand who is churning and why  
+- Quantify churn drivers (contract type, tenure, pricing, etc.)  
+- Identify high-risk customers using ML probability scores  
+- Take action using BI dashboards powered by warehouse logic  
 
-Optional AWS S3 landing zone for raw file ingestion
+---
 
-Snowflake external stages for cloud-native loading
+## Architecture Overview
 
-Transformations and analytics remain warehouse-first
+End-to-end pipeline:
 
-Tech Stack
-Data & Processing
+Data Ingestion → Snowflake (RAW → STG → ANALYTICS) → Feature Engineering → ML Training & Scoring → BI Views → Power BI Dashboards
 
-Python 3.13
+---
 
-DuckDB (local SQL profiling & validation)
+## AWS Context (Production-Realistic)
 
-Pandas, NumPy
+- Snowflake is deployed on AWS infrastructure  
+- All compute and storage run on AWS-backed Snowflake services  
+- Optional S3 landing zone for raw data ingestion  
+- Snowflake external stages used for cloud-native loading  
+- Warehouse-first design for transformations and analytics  
 
-Data Warehouse
+---
 
-Snowflake (RAW → STG → ANALYTICS schemas)
+## Tech Stack
 
-Warehouse-native quality checks
+### Data & Processing
+- Python 3.13  
+- Pandas, NumPy  
+- DuckDB (local validation & profiling)
 
-BI-ready semantic views
+### Data Warehouse
+- Snowflake (RAW → STG → ANALYTICS)
+- Warehouse-native data quality checks
+- Semantic BI-ready views
 
-Machine Learning
+### Machine Learning
+- scikit-learn pipeline
+- Logistic Regression model
+- Metrics:
+  - ROC AUC
+  - PR AUC
+  - Optimized decision threshold
 
-scikit-learn pipeline
+### Business Intelligence
+- Power BI (direct Snowflake connection)
+- Executive + operational dashboards
 
-Logistic Regression
+### Cloud
+- AWS (Snowflake-hosted environment)
+- Optional S3 ingestion pattern
 
-Metrics tracked:
+---
 
-ROC AUC
+## Data Model (Snowflake)
 
-PR AUC
+### Core Tables
+- ANALYTICS.CUSTOMER_CHURN_FEATURES  
+- ANALYTICS.CUSTOMER_CHURN_SCORES  
+- ANALYTICS.MODEL_RUNS  
 
-Optimized decision threshold
-
-Business Intelligence
-
-Power BI (direct connection to Snowflake)
-
-Executive + operational dashboards
-
-Cloud Platform
-
-AWS (Snowflake-hosted deployment)
-
-Optional S3-based ingestion pattern
-
-Data Model (Snowflake)
-Core Tables
-ANALYTICS.CUSTOMER\_CHURN\_FEATURES
-
-ANALYTICS.CUSTOMER\_CHURN\_SCORES
-
-ANALYTICS.MODEL\_RUNS
-
-BI Views
-V\_KPI\_SNAPSHOT
-
-V\_CHURN\_BY\_CONTRACT
-
-V\_CHURN\_BY\_TENURE\_BUCKET
-
-V\_CHURN\_BY\_MONTHLY\_CHARGE\_BAND
-
-V\_LATEST\_CHURN\_SCORES
-
-V\_TOP\_RISK\_CUSTOMERS
+### BI Views
+- V_KPI_SNAPSHOT  
+- V_CHURN_BY_CONTRACT  
+- V_CHURN_BY_TENURE_BUCKET  
+- V_CHURN_BY_MONTHLY_CHARGE_BAND  
+- V_LATEST_CHURN_SCORES  
+- V_TOP_RISK_CUSTOMERS  
 
 These views provide a clean semantic layer for Power BI without duplicating logic.
 
-Machine Learning Workflow
-Feature extraction from Snowflake analytics schema
+---
 
-Train / test split
+## Machine Learning Workflow
 
-Pipeline:
+- Feature extraction from Snowflake analytics schema  
+- Train/test split  
+- Data preprocessing pipeline:
+  - Missing value imputation  
+  - One-hot encoding  
+- Logistic Regression model  
+- Threshold optimization (PR/F1 tradeoff)  
 
-Imputation
+### Model Output Write-back
+- Model metadata stored in Snowflake  
+- Per-customer churn probability scores saved  
 
-One-hot encoding
+### Performance
+- ROC AUC ≈ 0.84  
+- PR AUC ≈ 0.64  
+- Optimized threshold ≈ 0.57  
 
-Logistic regression
+---
 
-Threshold optimization using PR/F1 tradeoff
+## Design Decisions
 
-Write-back to Snowflake:
+- **Warehouse-first architecture:** All feature engineering lives in Snowflake for consistency between ML and BI  
+- **Interpretable model:** Logistic Regression chosen for transparency and stable probability outputs  
+- **Latest-run isolation:** BI views always reference the most recent model run to avoid stale data  
 
-Model metadata
+---
 
-Per-customer churn probabilities
+## Power BI Dashboards
 
-Example performance
+### Executive Overview
+- Total customers  
+- Churn rate  
+- Average monthly charges  
+- Model performance (ROC AUC, PR AUC)  
+- Churn breakdown by:
+  - Contract type  
+  - Tenure bucket  
+  - Monthly charge band  
 
-ROC AUC ≈ 0.84
+### Risk Targeting
+- High-risk customer table  
+- Churn probability filtering  
+- Binary churn prediction  
+- Latest model run only  
 
-PR AUC ≈ 0.64
+---
 
-Optimized threshold ≈ 0.57
+## Repository Structure
 
-Design Decisions & Tradeoffs
-Warehouse-first transformations: All feature engineering and aggregations live in Snowflake views to ensure consistency between ML and BI.
-Logistic Regression over black-box models: Chosen for interpretability and stable probability calibration in churn use cases.
-Latest-run isolation: BI views are scoped to the most recent model run to prevent stale scores from leaking into dashboards.
-Power BI Dashboards
-Page 1 — Executive Overview
-Total Customers
-
-Churn Rate
-
-Avg Monthly Charges
-
-ROC AUC, PR AUC
-
-Decision Threshold
-
-Churn by:
-
-Contract Type
-
-Tenure Bucket
-
-Monthly Charge Band
-
-Page 2 — Risk Targeting
-High-risk customer table
-
-Churn probability slicer
-
-Binary churn prediction filter
-
-Latest model run only
-
-Screenshots
-Snowflake – KPI Semantic Layer
-Snowflake KPI Snapshot
-
-Snowflake – KPI Snapshot View
-Single-row KPI view used as the semantic source for executive Power BI cards.
-
-Snowflake – Operational Risk Output
-Top Risk Customers
-
-Snowflake – Top Risk Customers View
-Warehouse-derived view showing highest-risk customers from the latest ML scoring run, used directly by Power BI for operational targeting.
-
-Power BI – Executive Overview
-Power BI Executive Dashboard
-
-Power BI – Executive Churn Overview
-Executive-facing dashboard summarizing customer churn KPIs, key churn drivers, and model performance metrics, powered by Snowflake analytics views and the latest ML scoring run.
-
-Power BI – Risk Targeting View
-Power BI Risk Targeting
-
-Power BI – Customer Risk Targeting View
-Operational dashboard enabling exploration of high-risk customers using churn probability scores, prediction flags, and interactive filters, sourced directly from Snowflake warehouse outputs.
-
-Repository Structure
+```text
 snowflake-churn-warehouse/
 │
 ├── src/
-│ ├── config.py
-│ ├── snowflake_client.py
-│ ├── load_to_snowflake.py
-│ ├── run_quality_checks.py
-│ └── model_train_score.py
+│   ├── config.py
+│   ├── snowflake_client.py
+│   ├── load_to_snowflake.py
+│   ├── run_quality_checks.py
+│   └── model_train_score.py
 │
 ├── sql/
-│ ├── 08_scoring_tables.sql
-│ └── 09_bi_views.sql
+│   ├── 08_scoring_tables.sql
+│   └── 09_bi_views.sql
 │
 ├── data/
-│ └── telco_churn.csv
+│   └── telco_churn.csv
 │
 ├── powerbi/
-│ └── churn_dashboard.pbix
+│   └── churn_dashboard.pbix
 │
 ├── run_local_duckdb.py
 ├── requirements.txt
 ├── .env.example
 └── README.md
-
-How to Run Locally (No Secrets Exposed)
-1. Clone the repository
-git clone https://github.com/your-username/snowflake-churn-warehouse.git
-cd snowflake-churn-warehouse
-2. Create virtual environment
-python -m venv .venv
-source .venv/Scripts/activate  # Windows Git Bash
-pip install -r requirements.txt
-3. Configure environment variables
-Secrets are never committed.
-
-cp .env.example .env
-Fill in your Snowflake credentials inside .env.
-
-.env is excluded via .gitignore.
-
-4. Run local profiling (DuckDB)
-python run_local_duckdb.py
-Validates:
-
-delimiter detection
-
-numeric parsing
-
-churn distribution
-
-feature logic
-
-5. Load data into Snowflake
-python -m src.load_to_snowflake
-Creates:
-
-RAW → STG → ANALYTICS schemas
-
-Feature mart
-
-6. Run warehouse-native quality checks
-python -m src.run_quality_checks
-Includes:
-
-uniqueness checks
-
-null checks
-
-label distribution
-
-parsing health
-
-7. Train model and write scores
-python -m src.model_train_score
-Outputs:
-
-MODEL\_RUNS
-
-CUSTOMER\_CHURN\_SCORES
-
-8. Open Power BI
-Connect to Snowflake
-
-Import BI views
-
-Load dashboard (.pbix)
-
-Future Enhancements
-Add incremental scoring using Snowflake Tasks and Streams
-Introduce feature monitoring and data drift detection
-Deploy Power BI dashboards via scheduled refresh and role-based access
-Security Notes
-No credentials in source code
-
-.env file is gitignored
-
-Snowflake authentication handled via environment variables
-
-Suitable for public GitHub hosting
